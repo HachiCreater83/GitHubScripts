@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public class Sokoban : MonoBehaviour
 {
@@ -16,6 +18,7 @@ public class Sokoban : MonoBehaviour
          * BLOCK=4ブロック
          * PLAYER_ON_TARGET=5,プレイヤー（目的地の上にいる場合）
          * BLOCK_ON_TARGET=6 ,ブロック（目的地の上にある場合）
+         * ITEM=7,アイテム
          */
 
         NONE,
@@ -25,6 +28,7 @@ public class Sokoban : MonoBehaviour
         BLOCK,
         PLAYER_ON_TARGET,
         BLOCK_ON_TARGET,
+        ITEM,
     }
 
     // 方向の種類
@@ -48,6 +52,7 @@ public class Sokoban : MonoBehaviour
     [SerializeField, Header("地面のスプライト")] private Sprite groundSprite;
     [SerializeField, Header("目的地のスプライト")] private Sprite targetSprite;
     [SerializeField, Header("ブロックのスプライト")] private Sprite blockSprite;
+    [SerializeField, Header("アイテムのスプライト")] private Sprite itemSprite;
     [SerializeField, Header("プレイヤーのスプライト")] private Sprite playerSprite;
     [SerializeField, Header("プレイヤーの上向きスプライト")] private Sprite player_upSprite;
     [SerializeField, Header("プレイヤーの左向きスプライト")] private Sprite player_leftSprite;
@@ -57,9 +62,15 @@ public class Sokoban : MonoBehaviour
 
     private GameObject player; // プレイヤーのゲームオブジェクト
     private Vector2 middleOffset; // 中心位置
-    private int blockCount; // ブロックの数
-    private bool isClear; // ゲームをクリアした場合 true
-    SpriteRenderer playersp;
+    private int blockCount = default; // ブロックの数
+    private bool isClear = false; // ゲームをクリアした場合 true
+    private bool isMiss = false; // ゲームをクリアした場合 true
+    private SpriteRenderer playersp;//プレイヤーの方向に向く変数
+    public int NumberActions = 20;//プレイヤーの行動回数
+    public Text ActionCountText;//プレイヤーの行動回数を表示するテキスト
+
+
+    [SerializeField, Header("失敗時に表示されるCanvas")] private GameObject MissCanvas = null;
 
     // 各位置に存在するゲームオブジェクトを管理する連想配列
     private Dictionary<GameObject, Vector2Int> gameObjectPosTable = new Dictionary<GameObject, Vector2Int>();
@@ -247,8 +258,7 @@ public class Sokoban : MonoBehaviour
     private void Update()
     {
         // ゲームクリアしている場合は操作できないようにする
-        if (isClear) return;
-
+        if (isClear || isMiss) return;
 
         #region //移動設定
         // 上矢印が押された場合
@@ -360,6 +370,10 @@ public class Sokoban : MonoBehaviour
             // プレイヤーの位置を更新
             gameObjectPosTable[player] = nextPlayerPos;
 
+            //プレイヤーの行動回数を減らす
+            NumberActions--;
+            ActionCountText.text = NumberActions.ToString();
+
             // プレイヤーの移動先の番号を更新
             if (tileList[nextPlayerPos.x, nextPlayerPos.y] == TileType.GROUND)
             {
@@ -380,8 +394,16 @@ public class Sokoban : MonoBehaviour
     // 指定された方向の位置を返す
     private Vector2Int GetNextPositionAlong(Vector2Int pos, DirectionType direction)
     {
-       player = GameObject.Find("player");
-       playersp = player.GetComponent<SpriteRenderer>();
+        player = GameObject.Find("player");
+        playersp = player.GetComponent<SpriteRenderer>();
+
+        //まだ行動できるかどうかの確認
+        if (NumberActions <= 0)
+        {
+            isMiss = true;
+            Invoke("Gameover", 1f);
+        }
+        //移動後の処理
         switch (direction)
         {
             // 上
@@ -453,8 +475,12 @@ public class Sokoban : MonoBehaviour
         {
             // ゲームクリア
             isClear = true;
-
+            return;
         }
     }
 
+    public void Gameover()
+    {
+        MissCanvas.SetActive(true);
+    }
 }
