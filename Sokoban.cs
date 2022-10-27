@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 public class Sokoban : MonoBehaviour
 {
@@ -18,7 +18,6 @@ public class Sokoban : MonoBehaviour
          * BLOCK=4ブロック
          * PLAYER_ON_TARGET=5,プレイヤー（目的地の上にいる場合）
          * BLOCK_ON_TARGET=6 ,ブロック（目的地の上にある場合）
-         * ITEM=7,アイテム
          */
 
         NONE,
@@ -28,7 +27,6 @@ public class Sokoban : MonoBehaviour
         BLOCK,
         PLAYER_ON_TARGET,
         BLOCK_ON_TARGET,
-        ITEM,
     }
 
     // 方向の種類
@@ -40,14 +38,13 @@ public class Sokoban : MonoBehaviour
         LEFT, // 左に移動
     }
 
+    #region//タイル情報
     public TextAsset stageFile; // ステージ構造が記述されたテキストファイル
-
     private int rows; // 行数
     private int columns; // 列数
     private TileType[,] tileList; // タイル情報を管理する二次元配列
-
     public float tileSize; // タイルのサイズ
-
+    #endregion
     #region //スプライトの設定
     [SerializeField, Header("地面のスプライト")] private Sprite groundSprite;
     [SerializeField, Header("目的地のスプライト")] private Sprite targetSprite;
@@ -60,17 +57,18 @@ public class Sokoban : MonoBehaviour
     [SerializeField, Header("プレイヤーの右向きスプライト")] private Sprite player_rightSprite;
     #endregion
 
-    private GameObject player; // プレイヤーのゲームオブジェクト
+    private GameObject player = null; // プレイヤーのゲームオブジェクト
     private Vector2 middleOffset; // 中心位置
     private int blockCount = default; // ブロックの数
     private bool isClear = false; // ゲームをクリアした場合 true
     private bool isMiss = false; // ゲームをクリアした場合 true
-    private SpriteRenderer playersp;//プレイヤーの方向に向く変数
+    private SpriteRenderer playersp = null;//プレイヤーの方向に向く変数
+    public Canvas CountCanvas = null;//行動回数を表すキャンバス
+    public Text ActionCountText = null;//プレイヤーの行動回数を表示するテキスト
     public int NumberActions = 20;//プレイヤーの行動回数
-    public Text ActionCountText;//プレイヤーの行動回数を表示するテキスト
 
-
-    [SerializeField, Header("失敗時に表示されるCanvas")] private GameObject MissCanvas = null;
+    [SerializeField, Header("シーン切り替え時に表示されるCanvas")] private GameObject CutInCanvas = null;
+    StageManager stage_manager;
 
     // 各位置に存在するゲームオブジェクトを管理する連想配列
     private Dictionary<GameObject, Vector2Int> gameObjectPosTable = new Dictionary<GameObject, Vector2Int>();
@@ -80,6 +78,7 @@ public class Sokoban : MonoBehaviour
     {
         LoadTileData(); // タイルの情報を読み込む
         CreateStage(); // ステージを作成
+        ActionCountText.text = NumberActions.ToString();//行動回数の表示
     }
 
     // タイルの情報を読み込む
@@ -257,7 +256,7 @@ public class Sokoban : MonoBehaviour
     // 毎フレーム呼び出される
     private void Update()
     {
-        // ゲームクリアしている場合は操作できないようにする
+        // ゲームの終了判定中は操作できないようにする
         if (isClear || isMiss) return;
 
         #region //移動設定
@@ -290,7 +289,7 @@ public class Sokoban : MonoBehaviour
     }
 
     // 指定された方向にプレイヤーが移動できるか検証
-    // 移動できる場合は移動する
+    // 移動できる場合は指定の方向に移動する
     private void TryMovePlayer(DirectionType direction)
     {
         // プレイヤーの現在地を取得
@@ -307,6 +306,10 @@ public class Sokoban : MonoBehaviour
         {
             // ブロックの移動先の位置を計算
             var nextBlockPos = GetNextPositionAlong(nextPlayerPos, direction);
+
+            //プレイヤーの行動回数を減らす
+            NumberActions--;
+            ActionCountText.text = NumberActions.ToString();
 
             // ブロックの移動先がステージ内の場合かつ
             // ブロックの移動先にブロックが存在しない場合
@@ -375,18 +378,18 @@ public class Sokoban : MonoBehaviour
             ActionCountText.text = NumberActions.ToString();
 
             // プレイヤーの移動先の番号を更新
+            // 移動先が地面ならプレイヤーの番号に更新
             if (tileList[nextPlayerPos.x, nextPlayerPos.y] == TileType.GROUND)
             {
-                // 移動先が地面ならプレイヤーの番号に更新
                 tileList[nextPlayerPos.x, nextPlayerPos.y] = TileType.PLAYER;
             }
+
+            // 移動先が目的地ならプレイヤー（目的地の上）の番号に更新
             else if (tileList[nextPlayerPos.x, nextPlayerPos.y] == TileType.TARGET)
             {
-                // 移動先が目的地ならプレイヤー（目的地の上）の番号に更新
                 tileList[nextPlayerPos.x, nextPlayerPos.y] = TileType.PLAYER_ON_TARGET;
             }
         }
-
         // ゲームをクリアしたかどうか確認
         CheckCompletion();
     }
@@ -401,7 +404,8 @@ public class Sokoban : MonoBehaviour
         if (NumberActions <= 0)
         {
             isMiss = true;
-            Invoke("Gameover", 1f);
+            //シーン切り替え用のコルーチン
+          StartCoroutine(DelayCoroutine());
         }
         //移動後の処理
         switch (direction)
@@ -473,14 +477,22 @@ public class Sokoban : MonoBehaviour
         // すべてのブロックが目的地の上に乗っている場合
         if (blockOnTargetCount == blockCount)
         {
+            //シーン切り替え用のキャンバスを表示
+            CutInCanvas.SetActive(true);
             // ゲームクリア
             isClear = true;
             return;
         }
     }
 
-    public void Gameover()
+    //コルーチン一定時間後に次の処理する
+    private IEnumerator DelayCoroutine()
     {
-        MissCanvas.SetActive(true);
+        CutInCanvas.SetActive(true);
+        // Time.timeScale の影響を受けずに実時間で2秒待つ
+        yield return new WaitForSecondsRealtime(2);
+        //2秒後にシーンを切り替える
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
+   
 }
