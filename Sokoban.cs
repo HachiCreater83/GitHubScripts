@@ -47,23 +47,23 @@ public class Sokoban : MonoBehaviour
      * タイル情報を管理する二次元配列
      * タイルのサイズ,アセットの表示サイズに合わせる
      */
-    public TextAsset stageFile;
-    private int rows;
-    private int columns;
-    private TileType[,] tileList;
-    public float tileSize;
+    public TextAsset stageFile = null;
+    private int rows = default;
+    private int columns = default;
+    private TileType[,] tileList = null;
+    public float tileSize = default;
     #endregion
 
     #region //スプライトの設定,マップに表示する際に用いる設定
-    [SerializeField, Header("地面のスプライト")] private Sprite groundSprite;
-    [SerializeField, Header("目的地のスプライト")] private Sprite targetSprite;
-    [SerializeField, Header("ブロックのスプライト")] private Sprite blockSprite;
-    [SerializeField, Header("アイテムのスプライト")] private Sprite itemSprite;
-    [SerializeField, Header("プレイヤーのスプライト")] private Sprite playerSprite;
-    [SerializeField, Header("プレイヤーの上向きスプライト")] private Sprite player_upSprite;
-    [SerializeField, Header("プレイヤーの左向きスプライト")] private Sprite player_leftSprite;
-    [SerializeField, Header("プレイヤーの下向きスプライト")] private Sprite player_downSprite;
-    [SerializeField, Header("プレイヤーの右向きスプライト")] private Sprite player_rightSprite;
+    [SerializeField, Header("地面のスプライト")] private Sprite groundSprite = null;
+    [SerializeField, Header("目的地のスプライト")] private Sprite targetSprite = null;
+    [SerializeField, Header("ブロックのスプライト")] private Sprite blockSprite = null;
+    [SerializeField, Header("アイテムのスプライト")] private Sprite itemSprite = null;
+    [SerializeField, Header("プレイヤーのスプライト")] private Sprite playerSprite = null;
+    [SerializeField, Header("プレイヤーの上向きスプライト")] private Sprite player_upSprite = null;
+    [SerializeField, Header("プレイヤーの左向きスプライト")] private Sprite player_leftSprite = null;
+    [SerializeField, Header("プレイヤーの下向きスプライト")] private Sprite player_downSprite = null;
+    [SerializeField, Header("プレイヤーの右向きスプライト")] private Sprite player_rightSprite = null;
     #endregion
 
     #region //クリア,ミス判定,表示するスプライト,行動回数などに用いる変数
@@ -280,7 +280,7 @@ public class Sokoban : MonoBehaviour
 
         #region //移動設定
         // 上方向の移動処理が発生した場合
-        if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W)) 
+        if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W))
         {
             // プレイヤーが上に移動できるか検証
             TryMovePlayer(DirectionType.UP);
