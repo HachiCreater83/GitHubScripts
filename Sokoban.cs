@@ -47,11 +47,11 @@ public class Sokoban : MonoBehaviour
      * タイル情報を管理する二次元配列
      * タイルのサイズ
      */
-    public TextAsset stageFile;
-    private int rows;
-    private int columns;
-    private TileType[,] tileList;
-    public float tileSize;
+    public TextAsset _stageFile=default;
+    private int _rows=default;
+    private int _columns=default;
+    private TileType[,] _tileList=default;
+    public float _tileSize=default;
     #endregion
 
     #region //スプライトの設定
@@ -111,7 +111,7 @@ public class Sokoban : MonoBehaviour
     private void LoadTileData()
     {
         // タイルの情報を一行ごとに分割する
-        string[] lines = stageFile.text.Split
+        string[] lines = _stageFile.text.Split
         (
             new[] { '\r', '\n' },
             StringSplitOptions.RemoveEmptyEntries
@@ -124,20 +124,20 @@ public class Sokoban : MonoBehaviour
          *  行数
          *  列数
          */
-        rows = lines.Length;
-        columns = nums.Length;
+        _rows = lines.Length;
+        _columns = nums.Length;
 
         // タイル情報を int 型の２次元配列で保持
-        tileList = new TileType[columns, rows];
-        for (int y = 0; y < rows; y++)
+        _tileList = new TileType[_columns, _rows];
+        for (int y = 0; y < _rows; y++)
         {
             // 一文字ずつ取得する
             string st = lines[y];
             nums = st.Split(new[] { ',' });
-            for (int x = 0; x < columns; x++)
+            for (int x = 0; x < _columns; x++)
             {
                 // 読み込んだ文字を数値に変換して保持
-                tileList[x, y] = (TileType)int.Parse(nums[x]);
+                _tileList[x, y] = (TileType)int.Parse(nums[x]);
             }
         }
     }
@@ -146,14 +146,14 @@ public class Sokoban : MonoBehaviour
     private void CreateStage()
     {
         // ステージの中心位置を計算
-        middleOffset.x = columns * tileSize * 0.5f - tileSize * 0.5f;
-        middleOffset.y = rows * tileSize * 0.5f - tileSize * 0.5f; ;
+        middleOffset.x = _columns * _tileSize * 0.5f - _tileSize * 0.5f;
+        middleOffset.y = _rows * _tileSize * 0.5f - _tileSize * 0.5f; ;
 
-        for (int y = 0; y < rows; y++)
+        for (int y = 0; y < _rows; y++)
         {
-            for (int x = 0; x < columns; x++)
+            for (int x = 0; x < _columns; x++)
             {
-                TileType value = tileList[x, y];
+                TileType value = _tileList[x, y];
 
                 // 何も無い場所は無視
                 if (value == TileType.NONE) continue;
@@ -237,8 +237,8 @@ public class Sokoban : MonoBehaviour
     {
         return new Vector2
         (
-            x * tileSize - middleOffset.x,
-            y * -tileSize + middleOffset.y
+            x * _tileSize - middleOffset.x,
+            y * -_tileSize + middleOffset.y
         );
     }
 
@@ -260,16 +260,16 @@ public class Sokoban : MonoBehaviour
     // 指定された位置のタイルがブロックなら true を返す
     private bool IsBlock(Vector2Int pos)
     {
-        TileType cell = tileList[pos.x, pos.y];
+        TileType cell = _tileList[pos.x, pos.y];
         return cell == TileType.BLOCK || cell == TileType.BLOCK_ON_TARGET;
     }
 
     // 指定された位置がステージ内なら true を返す
     private bool IsValidPosition(Vector2Int pos)
     {
-        if (0 <= pos.x && pos.x < columns && 0 <= pos.y && pos.y < rows)
+        if (0 <= pos.x && pos.x < _columns && 0 <= pos.y && pos.y < _rows)
         {
-            return tileList[pos.x, pos.y] != TileType.NONE;
+            return _tileList[pos.x, pos.y] != TileType.NONE;
         }
         return false;
     }
@@ -350,15 +350,15 @@ public class Sokoban : MonoBehaviour
                 gameObjectPosTable[block] = nextBlockPos;
 
                 // ブロックの移動先の番号を更新
-                if (tileList[nextBlockPos.x, nextBlockPos.y] == TileType.GROUND)
+                if (_tileList[nextBlockPos.x, nextBlockPos.y] == TileType.GROUND)
                 {
                     // 移動先が地面ならブロックの番号に更新
-                    tileList[nextBlockPos.x, nextBlockPos.y] = TileType.BLOCK;
+                    _tileList[nextBlockPos.x, nextBlockPos.y] = TileType.BLOCK;
                 }
-                else if (tileList[nextBlockPos.x, nextBlockPos.y] == TileType.TARGET)
+                else if (_tileList[nextBlockPos.x, nextBlockPos.y] == TileType.TARGET)
                 {
                     // 移動先が目的地ならブロック（目的地の上）の番号に更新
-                    tileList[nextBlockPos.x, nextBlockPos.y] = TileType.BLOCK_ON_TARGET;
+                    _tileList[nextBlockPos.x, nextBlockPos.y] = TileType.BLOCK_ON_TARGET;
                 }
 
                 /*
@@ -371,15 +371,15 @@ public class Sokoban : MonoBehaviour
                 gameObjectPosTable[player] = nextPlayerPos;
 
                 // プレイヤーの移動先の番号を更新
-                if (tileList[nextPlayerPos.x, nextPlayerPos.y] == TileType.GROUND)
+                if (_tileList[nextPlayerPos.x, nextPlayerPos.y] == TileType.GROUND)
                 {
                     // 移動先が地面ならプレイヤーの番号に更新
-                    tileList[nextPlayerPos.x, nextPlayerPos.y] = TileType.PLAYER;
+                    _tileList[nextPlayerPos.x, nextPlayerPos.y] = TileType.PLAYER;
                 }
-                else if (tileList[nextPlayerPos.x, nextPlayerPos.y] == TileType.TARGET)
+                else if (_tileList[nextPlayerPos.x, nextPlayerPos.y] == TileType.TARGET)
                 {
                     // 移動先が目的地ならプレイヤー（目的地の上）の番号に更新
-                    tileList[nextPlayerPos.x, nextPlayerPos.y] = TileType.PLAYER_ON_TARGET;
+                    _tileList[nextPlayerPos.x, nextPlayerPos.y] = TileType.PLAYER_ON_TARGET;
                 }
             }
         }
@@ -402,15 +402,15 @@ public class Sokoban : MonoBehaviour
 
             // プレイヤーの移動先の番号を更新
             // 移動先が地面ならプレイヤーの番号に更新
-            if (tileList[nextPlayerPos.x, nextPlayerPos.y] == TileType.GROUND)
+            if (_tileList[nextPlayerPos.x, nextPlayerPos.y] == TileType.GROUND)
             {
-                tileList[nextPlayerPos.x, nextPlayerPos.y] = TileType.PLAYER;
+                _tileList[nextPlayerPos.x, nextPlayerPos.y] = TileType.PLAYER;
             }
 
             // 移動先が目的地ならプレイヤー（目的地の上）の番号に更新
-            else if (tileList[nextPlayerPos.x, nextPlayerPos.y] == TileType.TARGET)
+            else if (_tileList[nextPlayerPos.x, nextPlayerPos.y] == TileType.TARGET)
             {
-                tileList[nextPlayerPos.x, nextPlayerPos.y] = TileType.PLAYER_ON_TARGET;
+                _tileList[nextPlayerPos.x, nextPlayerPos.y] = TileType.PLAYER_ON_TARGET;
             }
         }
         // ゲームをクリアしたかどうか確認する
@@ -468,19 +468,19 @@ public class Sokoban : MonoBehaviour
     private void UpdateGameObjectPosition(Vector2Int pos)
     {
         // 指定された位置のタイルの番号を取得
-        TileType cell = tileList[pos.x, pos.y];
+        TileType cell = _tileList[pos.x, pos.y];
 
         // プレイヤーもしくはブロックの場合
         if (cell == TileType.PLAYER || cell == TileType.BLOCK)
         {
             // 地面に変更
-            tileList[pos.x, pos.y] = TileType.GROUND;
+            _tileList[pos.x, pos.y] = TileType.GROUND;
         }
         // 目的地に乗っているプレイヤーもしくはブロックの場合
         else if (cell == TileType.PLAYER_ON_TARGET || cell == TileType.BLOCK_ON_TARGET)
         {
             // 目的地に変更
-            tileList[pos.x, pos.y] = TileType.TARGET;
+            _tileList[pos.x, pos.y] = TileType.TARGET;
         }
     }
 
@@ -490,11 +490,11 @@ public class Sokoban : MonoBehaviour
         // 目的地に乗っているブロックの数を計算
         int blockOnTargetCount = 0;
 
-        for (int y = 0; y < rows; y++)
+        for (int y = 0; y < _rows; y++)
         {
-            for (int x = 0; x < columns; x++)
+            for (int x = 0; x < _columns; x++)
             {
-                if (tileList[x, y] == TileType.BLOCK_ON_TARGET)
+                if (_tileList[x, y] == TileType.BLOCK_ON_TARGET)
                 {
                     //目的地に乗っている場合加算する
                     blockOnTargetCount++;
