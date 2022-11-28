@@ -33,10 +33,10 @@ public class Sokoban : MonoBehaviour
     private enum DirectionType
     {
         //上下左右の移動処理
-        PLAYER_UP,
-        PLAYER_RIGHT,
-        PLAYER_DOWN,
-        PLAYER_LEFT,
+        PLAYERUP,
+        PLAYERRIGHT,
+        PLAYERDOWN,
+        PLAYERLEFT,
     }
 
     #region//タイル情報
@@ -47,23 +47,22 @@ public class Sokoban : MonoBehaviour
      * タイル情報を管理する二次元配列
      * タイルのサイズ
      */
-    public TextAsset _stageFile=default;
-    private int _rows=default;
-    private int _columns=default;
-    private TileType[,] _tileList=default;
-    public float _tileSize=default;
+    public TextAsset _stageFile = default;
+    private int _rows = default;
+    private int _columns = default;
+    private TileType[,] _tileList = default;
+    public float _tileSize = null;
     #endregion
 
     #region //スプライトの設定
-    [SerializeField, Header("地面のスプライト")] private Sprite groundSprite;
-    [SerializeField, Header("目的地のスプライト")] private Sprite targetSprite;
-    [SerializeField, Header("ブロックのスプライト")] private Sprite blockSprite;
-    [SerializeField, Header("アイテムのスプライト")] private Sprite itemSprite;
-    [SerializeField, Header("プレイヤーのスプライト")] private Sprite playerSprite;
-    [SerializeField, Header("プレイヤーの上向きスプライト")] private Sprite player_upSprite;
-    [SerializeField, Header("プレイヤーの左向きスプライト")] private Sprite player_leftSprite;
-    [SerializeField, Header("プレイヤーの下向きスプライト")] private Sprite player_downSprite;
-    [SerializeField, Header("プレイヤーの右向きスプライト")] private Sprite player_rightSprite;
+    [SerializeField, Header("地面のスプライト")] private Sprite _groundSprite = default;
+    [SerializeField, Header("目的地のスプライト")] private Sprite _targetSprite = default;
+    [SerializeField, Header("ブロックのスプライト")] private Sprite _blockSprite = default;
+    [SerializeField, Header("プレイヤーのスプライト")] private Sprite _playerSprite = default;
+    [SerializeField, Header("プレイヤーの上向きスプライト")] private Sprite _playerupSprite = default;
+    [SerializeField, Header("プレイヤーの左向きスプライト")] private Sprite _playerleftSprite = default;
+    [SerializeField, Header("プレイヤーの下向きスプライト")] private Sprite _playerdownSprite = default;
+    [SerializeField, Header("プレイヤーの右向きスプライト")] private Sprite _playerrightSprite = default;
     #endregion
 
     #region //判定、回数などの変数
@@ -78,19 +77,19 @@ public class Sokoban : MonoBehaviour
      * プレイヤーの行動回数を表示するテキスト
      * プレイヤーの行動回数
      */
-    private GameObject player = null;
-    private Vector2 middleOffset = default;
-    private int blockCount = default;
-    private bool isClear = false;
-    private bool isMiss = false;
-    private SpriteRenderer playersp = null;
-    public Canvas CountCanvas = null;
-    public Text ActionCountText = null;
-    public int NumberActions = 20;
+    private GameObject _player = default;
+    private Vector2 _middleOffset = default;
+    private int _blockCount = default;
+    private bool _isClear = false;
+    private bool _isMiss = false;
+    private SpriteRenderer _playersprite = default;
+    public Canvas _CountCanvas = default;
+    public Text _actionCountText = default;
+    public int _NumberActions = null;
     #endregion
 
-    [SerializeField, Header("Scene切り替え時に表示されるCanvas")] private GameObject CutInCanvas = null;
-    [SerializeField, Header("このScene後に飛ばすScene名")] private string nextSceneName = null;
+    [SerializeField, Header("Scene切り替え時に表示されるCanvas")] private GameObject _CutInCanvas = default;
+    [SerializeField, Header("このScene後に飛ばすScene名")] private string nextSceneName = default;
 
     // 各位置に存在するゲームオブジェクトを管理する連想配列
     public Dictionary<GameObject, Vector2Int> gameObjectPosTable = new Dictionary<GameObject, Vector2Int>();
@@ -104,7 +103,7 @@ public class Sokoban : MonoBehaviour
          */
         LoadTileData();
         CreateStage();
-        ActionCountText.text = NumberActions.ToString();
+        _actionCountText.text = _NumberActions.ToString();
     }
 
     // タイルの情報を読み込む処理
@@ -146,8 +145,8 @@ public class Sokoban : MonoBehaviour
     private void CreateStage()
     {
         // ステージの中心位置を計算
-        middleOffset.x = _columns * _tileSize * 0.5f - _tileSize * 0.5f;
-        middleOffset.y = _rows * _tileSize * 0.5f - _tileSize * 0.5f; ;
+        _middleOffset.x = _columns * _tileSize * 0.5f - _tileSize * 0.5f;
+        _middleOffset.y = _rows * _tileSize * 0.5f - _tileSize * 0.5f; ;
 
         for (int y = 0; y < _rows; y++)
         {
@@ -168,7 +167,7 @@ public class Sokoban : MonoBehaviour
                 SpriteRenderer sr = tile.AddComponent<SpriteRenderer>();
 
                 // タイルのスプライトを設定
-                sr.sprite = groundSprite;
+                sr.sprite = _groundSprite;
 
                 // タイルの位置を設定
                 tile.transform.position = GetDisplayPosition(x, y);
@@ -185,7 +184,7 @@ public class Sokoban : MonoBehaviour
                      */
                     GameObject destination = new GameObject("destination");
                     sr = destination.AddComponent<SpriteRenderer>();
-                    sr.sprite = targetSprite;
+                    sr.sprite = _targetSprite;
                     sr.sortingOrder = 1;
                     destination.transform.position = GetDisplayPosition(x, y);
                 }
@@ -200,12 +199,12 @@ public class Sokoban : MonoBehaviour
                      * プレイヤーの位置を設定
                      * プレイヤーを連想配列に追加
                      */
-                    player = new GameObject("player");
-                    sr = player.AddComponent<SpriteRenderer>();
-                    sr.sprite = playerSprite;
+                    _player = new GameObject("player");
+                    sr = _player.AddComponent<SpriteRenderer>();
+                    sr.sprite = _playerSprite;
                     sr.sortingOrder = 2;
-                    player.transform.position = GetDisplayPosition(x, y);
-                    gameObjectPosTable.Add(player, new Vector2Int(x, y));
+                    _player.transform.position = GetDisplayPosition(x, y);
+                    gameObjectPosTable.Add(_player, new Vector2Int(x, y));
                 }
                 // ブロックの場合
                 else if (value == TileType.BLOCK)
@@ -220,10 +219,10 @@ public class Sokoban : MonoBehaviour
                      * ブロックを連想配列に追加
                      * 
                      */
-                    blockCount++;
-                    GameObject block = new GameObject("block" + blockCount);
+                    _blockCount++;
+                    GameObject block = new GameObject("block" + _blockCount);
                     sr = block.AddComponent<SpriteRenderer>();
-                    sr.sprite = blockSprite;
+                    sr.sprite = _blockSprite;
                     sr.sortingOrder = 2;
                     block.transform.position = GetDisplayPosition(x, y);
                     gameObjectPosTable.Add(block, new Vector2Int(x, y));
@@ -237,8 +236,8 @@ public class Sokoban : MonoBehaviour
     {
         return new Vector2
         (
-            x * _tileSize - middleOffset.x,
-            y * -_tileSize + middleOffset.y
+            x * _tileSize - _middleOffset.x,
+            y * -_tileSize + _middleOffset.y
         );
     }
 
@@ -277,32 +276,32 @@ public class Sokoban : MonoBehaviour
     private void Update()
     {
         // ゲームの終了判定中は操作できないようにする
-        if (isClear || isMiss) return;
+        if (_isClear || _isMiss) return;
 
         #region //移動設定
         // 上方向の移動処理が発生した場合
         if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W))
         {
             // プレイヤーが上に移動できるか検証
-            TryMovePlayer(DirectionType.PLAYER_UP);
+            TryMovePlayer(DirectionType.PLAYERUP);
         }
         // 右方向の移動処理が発生した場合
         else if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D))
         {
             // プレイヤーが右に移動できるか検証
-            TryMovePlayer(DirectionType.PLAYER_RIGHT);
+            TryMovePlayer(DirectionType.PLAYERRIGHT);
         }
         // 下方向の移動処理が発生した場合
         else if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S))
         {
             // プレイヤーが下に移動できるか検証
-            TryMovePlayer(DirectionType.PLAYER_DOWN);
+            TryMovePlayer(DirectionType.PLAYERDOWN);
         }
         // 左方向の移動処理が発生した場合
         else if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A))
         {
             // プレイヤーが左に移動できるか検証
-            TryMovePlayer(DirectionType.PLAYER_LEFT);
+            TryMovePlayer(DirectionType.PLAYERLEFT);
         }
         #endregion
     }
@@ -320,7 +319,7 @@ public class Sokoban : MonoBehaviour
          * プレイヤーの移動先の位置を計算
          * プレイヤーの移動先がステージ内ではない場合は無視
          */
-        Vector2Int currentPlayerPos = gameObjectPosTable[player];
+        Vector2Int currentPlayerPos = gameObjectPosTable[_player];
         Vector2Int nextPlayerPos = GetNextPositionAlong(currentPlayerPos, direction);
         if (!IsValidPosition(nextPlayerPos)) return;
 
@@ -335,8 +334,8 @@ public class Sokoban : MonoBehaviour
             if (IsValidPosition(nextBlockPos) && !IsBlock(nextBlockPos))
             {
                 //プレイヤーの行動回数を減らす
-                NumberActions--;
-                ActionCountText.text = NumberActions.ToString();
+                _NumberActions--;
+                _actionCountText.text = _NumberActions.ToString();
 
                 /*
                  * 移動するブロックを取得する
@@ -367,8 +366,8 @@ public class Sokoban : MonoBehaviour
                  * プレイヤーの位置を更新
                  */
                 UpdateGameObjectPosition(currentPlayerPos);
-                player.transform.position = GetDisplayPosition(nextPlayerPos.x, nextPlayerPos.y);
-                gameObjectPosTable[player] = nextPlayerPos;
+                _player.transform.position = GetDisplayPosition(nextPlayerPos.x, nextPlayerPos.y);
+                gameObjectPosTable[_player] = nextPlayerPos;
 
                 // プレイヤーの移動先の番号を更新
                 if (_tileList[nextPlayerPos.x, nextPlayerPos.y] == TileType.GROUND)
@@ -394,10 +393,10 @@ public class Sokoban : MonoBehaviour
              * 設定した音楽を鳴らす
              */
             UpdateGameObjectPosition(currentPlayerPos);
-            player.transform.position = GetDisplayPosition(nextPlayerPos.x, nextPlayerPos.y);
-            gameObjectPosTable[player] = nextPlayerPos;
-            NumberActions--;
-            ActionCountText.text = NumberActions.ToString();
+            _player.transform.position = GetDisplayPosition(nextPlayerPos.x, nextPlayerPos.y);
+            gameObjectPosTable[_player] = nextPlayerPos;
+            _NumberActions--;
+            _actionCountText.text = _NumberActions.ToString();
             GetComponent<AudioSource>().Play();
 
             // プレイヤーの移動先の番号を更新
@@ -424,13 +423,13 @@ public class Sokoban : MonoBehaviour
          * プレイヤーオブジェクトを探し
          * スプライト情報を取得
          */
-        player = GameObject.Find("player");
-        playersp = player.GetComponent<SpriteRenderer>();
+        _player = GameObject.Find("player");
+        _playersprite = _player.GetComponent<SpriteRenderer>();
 
         //まだ行動できるかどうかの確認
-        if (NumberActions <= 0)
+        if (_NumberActions <= 0)
         {
-            isMiss = true;
+            _isMiss = true;
             //シーン切り替え用のコルーチン
             StartCoroutine(DelayCoroutine());
         }
@@ -438,27 +437,27 @@ public class Sokoban : MonoBehaviour
         switch (direction)
         {
             // 上方向の移動後処理
-            case DirectionType.PLAYER_UP:
+            case DirectionType.PLAYERUP:
                 pos.y -= 1;
-                playersp.sprite = player_upSprite;
+                _playersprite.sprite = _playerupSprite;
                 break;
 
             // 右方向の移動後処理
-            case DirectionType.PLAYER_RIGHT:
+            case DirectionType.PLAYERRIGHT:
                 pos.x += 1;
-                playersp.sprite = player_rightSprite;
+                _playersprite.sprite = _playerrightSprite;
                 break;
 
             // 下方向の移動後処理
-            case DirectionType.PLAYER_DOWN:
+            case DirectionType.PLAYERDOWN:
                 pos.y += 1;
-                playersp.sprite = player_downSprite;
+                _playersprite.sprite = _playerdownSprite;
                 break;
 
             // 左方向の移動後処理
-            case DirectionType.PLAYER_LEFT:
+            case DirectionType.PLAYERLEFT:
                 pos.x -= 1;
-                playersp.sprite = player_leftSprite;
+                _playersprite.sprite = _playerleftSprite;
                 break;
         }
         return pos;
@@ -503,12 +502,12 @@ public class Sokoban : MonoBehaviour
         }
 
         // すべてのブロックが目的地の上に乗っている場合
-        if (blockOnTargetCount == blockCount)
+        if (blockOnTargetCount == _blockCount)
         {
             //シーン切り替え用のコルーチン
             StartCoroutine(DelayCoroutine());
             // ゲームクリア
-            isClear = true;
+            _isClear = true;
             return;
         }
     }
@@ -517,14 +516,14 @@ public class Sokoban : MonoBehaviour
     private IEnumerator DelayCoroutine()
     {
         //設定したCanvasの表示
-        CutInCanvas.SetActive(true);
+        _CutInCanvas.SetActive(true);
 
         // Time.timeScale の影響を受けずに実時間で2秒待つ
         yield return new WaitForSecondsRealtime(2);
 
         //ゲーム終了時にクリアしてるかどうかの確認
         //クリアしてない場合
-        if (isClear == false)
+        if (_isClear == false)
         {
             //リトライするために現在のシーンを再読み込みする
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
