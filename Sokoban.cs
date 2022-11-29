@@ -280,7 +280,7 @@ public class Sokoban : MonoBehaviour
 
         #region //移動設定
         // 上方向の移動処理が発生した場合
-        if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W))
+        if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W)||)
         {
             // プレイヤーが上に移動できるか検証
             TryMovePlayer(DirectionType.PLAYERUP);
