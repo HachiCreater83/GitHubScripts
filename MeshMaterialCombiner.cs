@@ -108,13 +108,13 @@ public class MeshMaterialCombiner : MonoBehaviour
     /// 指定されたコンポーネントへの参照を取得します。
     /// コンポーネントがない場合はアタッチします。
     /// </Summary>
-    T CheckComponent<T>(GameObject obj) where T : Component
+    Transform CheckComponent<Transform>(GameObject obj) where Transform : Component
     {
         // 型パラメータで指定したコンポーネントへの参照を取得します。
-        var targetComp = obj.GetComponent<T>();
+        Transform targetComp = obj.GetComponent<Transform>();
         if (targetComp == null)
         {
-            targetComp = obj.AddComponent<T>();
+            targetComp = obj.AddComponent<Transform>();
         }
         return targetComp;
     }
