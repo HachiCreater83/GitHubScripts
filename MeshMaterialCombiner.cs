@@ -7,11 +7,13 @@ using UnityEngine;
 /// </Summary>
 public class MeshMaterialCombiner : MonoBehaviour
 {
-    // フィールドパーツの親オブジェクトのTransformです。
+    // フィールドの親オブジェクトのTransformです
+    // インスペクターウィンドウからセットするようにします
     public Transform fieldParent;
 
     /// <Summary>
-    /// 結合ボタンが押された時のメソッドです。
+    /// 結合ボタンが押された時のメソッドです
+    /// シーン内のUIから呼び出すようにします
     /// </Summary>
     public void OnPressedCombineMaterialButton()
     {
@@ -19,11 +21,12 @@ public class MeshMaterialCombiner : MonoBehaviour
     }
 
     /// <Summary>
-    /// メッシュとマテリアルを結合します。
+    /// メッシュとマテリアルを結合するために用います
     /// </Summary>
-    void CombineMeshWithMaterial()
+    private void CombineMeshWithMaterial()
     {
-        // 地形オブジェクトのMeshFilterへの参照を配列として保持します。
+        // 地形オブジェクトのMeshFilterへの参照を配列として保持します
+        // オブジェクトの子オブジェクトが持っているコンポーネントをGetComponentsInChildrenで取得します
         MeshFilter[] meshFilters = fieldParent.GetComponentsInChildren<MeshFilter>();
         MeshRenderer[] meshRenderers = fieldParent.GetComponentsInChildren<MeshRenderer>();
 
@@ -33,23 +36,24 @@ public class MeshMaterialCombiner : MonoBehaviour
             return;
         }
 
-        // 子オブジェクトのメッシュをマテリアルごとにグループ分けします。
+        // 子オブジェクトのメッシュをマテリアルごとにグループ分けします
+        // マテリアル名をキーとして、マテリアルを値に持つ辞書、そのマテリアルを持っているMeshFilterのリストの辞書をそれぞれ作成しています
         Dictionary<string, Material> matNameDict = new Dictionary<string, Material>();
         Dictionary<string, List<MeshFilter>> matFilterDict = new Dictionary<string, List<MeshFilter>>();
-        for (int i = 0; i < meshFilters.Length; i++)
+        for (int MaterialCount = 0; MaterialCount < meshFilters.Length; MaterialCount++)
         {
-            Material mat = meshRenderers[i].material;
-            string matName = mat.name;
+            Material material = meshRenderers[MaterialCount].material;
+            string matName = material.name;
 
-            // 辞書のキーにマテリアルが登録されていない場合はMeshFilterのリストを追加します。
+            // 辞書のキーにマテリアルが登録されていない場合はMeshFilterのリストを追加します
             if (!matFilterDict.ContainsKey(matName))
             {
                 List<MeshFilter> filterList = new List<MeshFilter>();
                 matFilterDict.Add(matName, filterList);
-                matNameDict.Add(matName, mat);
+                matNameDict.Add(matName, material);
             }
 
-            matFilterDict[matName].Add(meshFilters[i]);
+            matFilterDict[matName].Add(meshFilters[MaterialCount]);
         }
 
         // グループ分けしたマテリアルごとにオブジェクトを作成し、メッシュを結合します。
@@ -68,11 +72,11 @@ public class MeshMaterialCombiner : MonoBehaviour
             CombineInstance[] combine = new CombineInstance[filterList.Count];
 
             // 結合するメッシュの情報をCombineInstanceに追加していきます。
-            for (int i = 0; i < filterList.Count; i++)
+            for (int MeshCount = 0; MeshCount < filterList.Count; MeshCount++)
             {
-                combine[i].mesh = filterList[i].sharedMesh;
-                combine[i].transform = filterList[i].transform.localToWorldMatrix;
-                filterList[i].gameObject.SetActive(false);
+                combine[MeshCount].mesh = filterList[MeshCount].sharedMesh;
+                combine[MeshCount].transform = filterList[MeshCount].transform.localToWorldMatrix;
+                filterList[MeshCount].gameObject.SetActive(false);
             }
 
             // 結合したメッシュを作成したゲームオブジェクトにセットします。
@@ -97,6 +101,12 @@ public class MeshMaterialCombiner : MonoBehaviour
     /// </Summary>
     GameObject CreateMeshObj(string matName)
     {
+        /*
+         * 結合したメッシュを保持するためのゲームオブジェクトを作成
+         * 地形オブジェクトの下に作成
+         * SetParentには、フィールドの親オブジェクトのTransformが入る
+         */
+
         GameObject obj = new GameObject();
         obj.name = $"CombinedMesh_{matName}";
         obj.transform.SetParent(fieldParent);
@@ -105,16 +115,17 @@ public class MeshMaterialCombiner : MonoBehaviour
     }
 
     /// <Summary>
+    /// フィールドとしてマテリアルをセットするリスト
     /// 指定されたコンポーネントへの参照を取得します。
     /// コンポーネントがない場合はアタッチします。
     /// </Summary>
-    Transform CheckComponent<Transform>(GameObject obj) where Transform : Component
+    Transfrom CheckComponent<Transfrom>(GameObject obj) where Transfrom : Component
     {
         // 型パラメータで指定したコンポーネントへの参照を取得します。
-        Transform targetComp = obj.GetComponent<Transform>();
+        Transfrom targetComp = obj.GetComponent<Transfrom>();
         if (targetComp == null)
         {
-            targetComp = obj.AddComponent<Transform>();
+            targetComp = obj.AddComponent<Transfrom>();
         }
         return targetComp;
     }

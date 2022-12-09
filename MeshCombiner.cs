@@ -53,14 +53,16 @@ public class MeshCombiner : MonoBehaviour
             meshFilterList[i].gameObject.SetActive(false);
         }
 
-
         // 結合したメッシュをセットします。
         parentMeshFilter.mesh = new Mesh();
-        parentMeshFilter.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         parentMeshFilter.mesh.CombineMeshes(combine);
 
         // 結合したメッシュにマテリアルをセットします。
         parentMeshRenderer.material = combinedMat;
+
+        // 結合したメッシュをコライダーにセットします。
+        MeshCollider meshCol = CheckParentComponent<MeshCollider>(fieldParent.gameObject);
+        meshCol.sharedMesh = parentMeshFilter.mesh;
 
         // 親オブジェクトを表示します。
         fieldParent.gameObject.SetActive(true);
